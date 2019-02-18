@@ -133,7 +133,7 @@ static int is_impersonate = 0;
 #include "fastcgi.h"
 
 typedef struct _fcgi_header {
-	unsigned char version;
+	unsigned char version; //FastCGI协议版本
 	unsigned char type;
 	unsigned char requestIdB1;
 	unsigned char requestIdB0;
