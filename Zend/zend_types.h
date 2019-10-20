@@ -99,9 +99,9 @@ typedef void (*dtor_func_t)(zval *pDest);
 typedef void (*copy_ctor_func_t)(zval *pElement);
 
 typedef union _zend_value {
-	zend_long         lval;				/* long value */
-	double            dval;				/* double value */
-	zend_refcounted  *counted;
+	zend_long         lval;				/* long value 8个字节 */
+	double            dval;				/* double value 8 bite*/
+	zend_refcounted  *counted;          // 后面所有的指针类型都是 8 bite
 	zend_string      *str;
 	zend_array       *arr;
 	zend_object      *obj;
@@ -113,34 +113,34 @@ typedef union _zend_value {
 	zend_class_entry *ce;
 	zend_function    *func;
 	struct {
-		uint32_t w1;
-		uint32_t w2;
-	} ww;
-} zend_value;
+		uint32_t w1;                  // 4 bite
+		uint32_t w2;                  // 4 bite
+	} ww;                             // 8 biye
+} zend_value;                         // 内存对齐后，最终该结构占用8 bite,存放变量真实的值，
 
 struct _zval_struct {
-	zend_value        value;			/* value */
+	zend_value        value;			/* value 8 bite */
 	union {
 		struct {
 			ZEND_ENDIAN_LOHI_4(
-				zend_uchar    type,			/* active type */
-				zend_uchar    type_flags,
-				zend_uchar    const_flags,
-				zend_uchar    reserved)	    /* call info for EX(This) */
-		} v;
-		uint32_t type_info;
-	} u1;
+				zend_uchar    type,			/* active type 记录变量类型*/
+				zend_uchar    type_flags,   // 对应的变量类型的特有标记，不同类型的变量对应的flag也不同
+				zend_uchar    const_flags,  // 常量类型标记
+				zend_uchar    reserved)	    /* call info for EX(This) 保留字段*/
+		} v;                                // 4 bite
+		uint32_t type_info;                 // 4 bite
+	} u1;                                   // 内存对齐后，最终该结构占用4 bite,
 	union {
 		uint32_t     next;                 /* hash collision chain */
 		uint32_t     cache_slot;           /* literal cache slot */
 		uint32_t     lineno;               /* line number (for ast nodes) */
 		uint32_t     num_args;             /* arguments number for EX(This) */
 		uint32_t     fe_pos;               /* foreach position */
-		uint32_t     fe_iter_idx;          /* foreach iterator index */
-		uint32_t     access_flags;         /* class constant access flags */
-		uint32_t     property_guard;       /* single property guard */
+		uint32_t     fe_iter_idx;          /* foreach iterator index 针对对象的遍历*/
+		uint32_t     access_flags;         /* class constant access flags. such as:public protected private*/
+		uint32_t     property_guard;       /* single property guard. 防止类中魔术方法的循环调用，如：__get __set */
 		uint32_t     extra;                /* not further specified */
-	} u2;
+	} u2;                                  // 内存对齐后，最终该结构占用4 bite,
 };
 
 typedef struct _zend_refcounted_h {
