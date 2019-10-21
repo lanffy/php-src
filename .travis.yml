@@ -1,5 +1,7 @@
 language: c
 sudo: false
+ignore:
+  - srcReadNote/*
 addons:
   apt:
     packages:
