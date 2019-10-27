@@ -102,16 +102,16 @@ typedef union _zend_value {
 	zend_long         lval;				/* long value 8个字节 */
 	double            dval;				/* double value 8 bite*/
 	zend_refcounted  *counted;          // 后面所有的指针类型都是 8 bite
-	zend_string      *str;
-	zend_array       *arr;
-	zend_object      *obj;
-	zend_resource    *res;
-	zend_reference   *ref;
-	zend_ast_ref     *ast;
-	zval             *zv;
-	void             *ptr;
-	zend_class_entry *ce;
-	zend_function    *func;
+	zend_string      *str; // 字符串类型
+	zend_array       *arr; // 数组类型
+	zend_object      *obj; // 对象类型
+	zend_resource    *res; // 资源类型
+	zend_reference   *ref; // 引用类型（源码内部使用）
+	zend_ast_ref     *ast; //
+	zval             *zv;  // _zval_struct 类型
+	void             *ptr; // 指针
+	zend_class_entry *ce;  // 类
+	zend_function    *func;// 函数
 	struct {
 		uint32_t w1;                  // 4 bite
 		uint32_t w2;                  // 4 bite
@@ -141,10 +141,10 @@ struct _zval_struct {
 		uint32_t     property_guard;       /* single property guard. 防止类中魔术方法的循环调用，如：__get __set */
 		uint32_t     extra;                /* not further specified */
 	} u2;                                  // 内存对齐后，最终该结构占用4 bite,
-};
+};                                         // 内存对齐后，_zval_struct一共占用16 bite,
 
 typedef struct _zend_refcounted_h {
-	uint32_t         refcount;			/* reference counter 32-bit */
+	uint32_t         refcount;			/* reference counter 32-bit 引用次数 */
 	union {
 		struct {
 			ZEND_ENDIAN_LOHI_3(
@@ -154,17 +154,17 @@ typedef struct _zend_refcounted_h {
 		} v;
 		uint32_t type_info;
 	} u;
-} zend_refcounted_h;
+} zend_refcounted_h; // 垃圾回收信息 8bite
 
 struct _zend_refcounted {
 	zend_refcounted_h gc;
 };
 
 struct _zend_string {
-	zend_refcounted_h gc;
-	zend_ulong        h;                /* hash value */
-	size_t            len;
-	char              val[1];
+	zend_refcounted_h gc; //垃圾回收信息 8bite
+	zend_ulong        h;  // 在这里保存字符串hash信息，避免重复计算，提高效率 8bite               /* hash value */
+	size_t            len;// 字符串长度
+	char              val[1];// 字符串的值
 };
 
 typedef struct _Bucket {
@@ -176,7 +176,7 @@ typedef struct _Bucket {
 typedef struct _zend_array HashTable;
 
 struct _zend_array {
-	zend_refcounted_h gc;
+	zend_refcounted_h gc;  //垃圾回收信息 8bite
 	union {
 		struct {
 			ZEND_ENDIAN_LOHI_4(
